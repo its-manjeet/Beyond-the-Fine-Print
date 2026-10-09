@@ -1,0 +1,42 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.egg-info/
+
+# Node / frontend
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+coverage/
+
+# Local data (real documents must never be committed unless anonymised)
+*.db
+*.sqlite
+*.sqlite3
+/data/uploads/
+/data/chroma/
+uploads/
+chroma/
+vector_store/
+vectorstore/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
