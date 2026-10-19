@@ -15,3 +15,14 @@ def settings() -> Settings:
         llm_backoff_base_seconds=1.0,
         llm_backoff_max_seconds=8.0,
     )
+
+
+@pytest.fixture
+def db():
+    """A fresh in-memory database."""
+    from app.storage.db import Database
+
+    database = Database("sqlite://")
+    database.create_all()
+    yield database
+    database.dispose()

@@ -40,3 +40,9 @@ vectorstore/
 .idea/
 .DS_Store
 Thumbs.db
+
+# SQLite database and temp files
+*.db
+*.db-shm
+*.db-wal
+*.db-journal

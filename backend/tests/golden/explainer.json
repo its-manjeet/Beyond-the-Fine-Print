@@ -1,0 +1,62 @@
+{
+  "explanations": [
+    {"clause_code": "C-01", "sentences": [
+      {"text": "This agreement is between the owner, Suresh Vasant Kulkarni, and you, Ananya Prakash Rao.", "clause_codes": ["C-01"]},
+      {"text": "It is a leave and licence agreement, which lets you use the flat on these terms.", "clause_codes": ["C-01"]}
+    ]},
+    {"clause_code": "C-02", "sentences": [
+      {"text": "You may use Flat No. 304 at Sai Kiran Residency, Baner, Pune, with the fittings listed in Annexure A.", "clause_codes": ["C-02"]}
+    ]},
+    {"clause_code": "C-03", "sentences": [
+      {"text": "The agreement lasts 11 months, from 1 November 2026 to 30 September 2027.", "clause_codes": ["C-03"]},
+      {"text": "It can end sooner only in the ways the agreement allows.", "clause_codes": ["C-03"]}
+    ]},
+    {"clause_code": "C-04", "sentences": [
+      {"text": "You pay Rs. 18,000 rent every month, in advance.", "clause_codes": ["C-04"]},
+      {"text": "It must reach the owner by the 5th of each month, by bank transfer.", "clause_codes": ["C-04"]}
+    ]},
+    {"clause_code": "C-05", "sentences": [
+      {"text": "If your rent is late, you pay Rs. 500 for each day of delay.", "clause_codes": ["C-05", "C-04"]},
+      {"text": "If it is more than 15 days late, the owner can treat it as breaking the agreement.", "clause_codes": ["C-05"]}
+    ]},
+    {"clause_code": "C-06", "sentences": [
+      {"text": "You have paid a deposit of Rs. 1,00,000, which earns no interest.", "clause_codes": ["C-06"]},
+      {"text": "You get it back within 30 days of leaving, minus unpaid dues and repair costs for damage.", "clause_codes": ["C-06"]}
+    ]},
+    {"clause_code": "C-07", "sentences": [
+      {"text": "You agree to stay for the full 11 months.", "clause_codes": ["C-07"]},
+      {"text": "If you leave early, you must pay two months' rent, Rs. 36,000, and the owner can take it from your deposit.", "clause_codes": ["C-07", "C-06"]}
+    ]},
+    {"clause_code": "C-08", "sentences": [
+      {"text": "The owner can end the agreement at any time with only 7 days' written notice, without giving a reason.", "clause_codes": ["C-08"]},
+      {"text": "You can end it only after the lock-in, and you must give one month's written notice.", "clause_codes": ["C-08", "C-07"]},
+      {"text": "Courts usually do not allow this kind of term.", "clause_codes": ["C-42"]}
+    ]},
+    {"clause_code": "C-09", "sentences": [
+      {"text": "Your rent goes up by 10% every 12 months, including when the agreement is renewed.", "clause_codes": ["C-09"]}
+    ]},
+    {"clause_code": "C-10", "sentences": [
+      {"text": "The owner pays society maintenance and property tax.", "clause_codes": ["C-10"]},
+      {"text": "You pay electricity, water and gas bills, and small repairs up to Rs. 2,000 each.", "clause_codes": ["C-10"]}
+    ]},
+    {"clause_code": "C-11", "sentences": [
+      {"text": "You can use the flat only as a home for you and your close family.", "clause_codes": ["C-11"]},
+      {"text": "You cannot rent it to someone else, keep pets without written permission, or change the structure.", "clause_codes": ["C-11"]}
+    ]},
+    {"clause_code": "C-12", "sentences": [
+      {"text": "The owner can visit to check the flat, but must tell you at least 24 hours before.", "clause_codes": ["C-12"]}
+    ]},
+    {"clause_code": "C-13", "sentences": [
+      {"text": "The agreement continues after 11 months only if you and the owner both agree in writing.", "clause_codes": ["C-13"]},
+      {"text": "If it is renewed, the rent goes up by 10%.", "clause_codes": ["C-13", "C-09"]}
+    ]},
+    {"clause_code": "C-14", "sentences": [
+      {"text": "When the agreement ends, you must leave the flat empty and hand it back.", "clause_codes": ["C-14"]},
+      {"text": "If you stay on, you pay Rs. 1,500 for every extra day.", "clause_codes": ["C-14"]}
+    ]},
+    {"clause_code": "C-15", "sentences": [
+      {"text": "If there is a dispute, you first try to settle it by talking.", "clause_codes": ["C-15"]},
+      {"text": "If that fails, a single arbitrator chosen by the owner decides it in Pune.", "clause_codes": ["C-15"]}
+    ]}
+  ]
+}

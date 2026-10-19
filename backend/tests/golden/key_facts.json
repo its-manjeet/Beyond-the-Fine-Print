@@ -1,0 +1,20 @@
+{
+  "facts": [
+    {"name": "owner", "value": "Suresh Vasant Kulkarni (licensor)", "clause_code": "C-01"},
+    {"name": "tenant", "value": "Ananya Prakash Rao (licensee)", "clause_code": "C-01"},
+    {"name": "property", "value": "Flat No. 304, Sai Kiran Residency, Baner Road, Baner, Pune 411045", "clause_code": "C-02"},
+    {"name": "start_date", "value": "1 November 2026", "clause_code": "C-03"},
+    {"name": "duration", "value": "11 months, ending 30 September 2027", "clause_code": "C-03"},
+    {"name": "monthly_rent", "value": "Rs. 18,000 per month, due by the 5th", "clause_code": "C-04"},
+    {"name": "late_payment_penalty", "value": "Rs. 500 for every day of delay", "clause_code": "C-05"},
+    {"name": "security_deposit", "value": "Rs. 1,00,000, refundable, no interest", "clause_code": "C-06"},
+    {"name": "lock_in", "value": "11 months", "clause_code": "C-07"},
+    {"name": "early_exit_penalty", "value": "Two months' rent (Rs. 36,000) if you leave during the lock-in", "clause_code": "C-07"},
+    {"name": "notice_period_owner", "value": "7 days", "clause_code": "C-08"},
+    {"name": "notice_period_tenant", "value": "1 month, and only after the lock-in", "clause_code": "C-08"},
+    {"name": "rent_increase", "value": "10% every 12 months, including on renewal", "clause_code": "C-09"},
+    {"name": "other_penalty", "value": "Rs. 1,500 per day if you stay after the agreement ends", "clause_code": "C-14"},
+    {"name": "monthly_rent", "value": "Rs. 18,000", "clause_code": "C-04"},
+    {"name": "tenant", "value": "Somebody else", "clause_code": "C-99"}
+  ]
+}

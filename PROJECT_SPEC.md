@@ -126,6 +126,8 @@ class LLMProvider(ABC):
     - A 429 with `retry-after` blocks the bucket for exactly that long. Other retryable errors use the same exponential backoff as Anthropic.
     - Live headers on 2026-10-02 showed the limits are tracked separately per model: 8K tokens/minute and 1K requests/day on the free tier.
   - **Output size**: requested output is capped at `GROQ_MAX_OUTPUT_TOKENS` (default 2048), because it counts toward the tokens-per-minute limit.
+  - **Reasoning**: gpt-oss models are sent `reasoning_effort` (`GROQ_REASONING_EFFORT`, default `low`). Their reasoning tokens count toward the output cap; on 2026-10-09, the default effort used the whole 2,048 tokens on a 15-clause risk call and cut the answer off.
+  - **Generation failures**: a 400 that carries `failed_generation` (e.g. `json_validate_failed`, "Parsing failed") is retried like a 5xx. If it persists, it raises `LLMOutputError`, and agents split the batch in half and retry.
   - **Performance**: the 60-second processing target (section 6) does not apply on the Groq free tier.
 - **Testing**: agent tests use a mock `LLMProvider`. Provider tests inject a fake SDK client. No test makes a real API call.
 

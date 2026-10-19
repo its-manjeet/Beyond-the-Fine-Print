@@ -18,6 +18,8 @@ from app.core.llm import (
     LLMRefusalError,
     LLMRequestError,
     LLMUnavailableError,
+    LLMUsage,
+    capture_usage,
     create_provider,
 )
 from app.core.llm import groq_provider as module
@@ -119,6 +121,16 @@ def provider(settings: Settings, client: FakeClient, limiter: RateLimiter | None
 
 
 # --- requests & parsing --------------------------------------------------------------
+
+
+async def test_usage_is_reported_to_capture_including_corrective_retry(groq_settings: Settings) -> None:
+    client = FakeClient(completion({"text": "missing confidence"}), completion())
+
+    with capture_usage() as usage:
+        await provider(groq_settings, client).generate_structured("p", Claim)
+
+    assert usage == [LLMUsage(input_tokens=120, output_tokens=30, model="openai/gpt-oss-120b")] * 2
+
 
 
 async def test_returns_validated_object_with_strict_schema(groq_settings: Settings) -> None:
@@ -326,6 +338,63 @@ async def test_bad_request_not_retried_and_message_surfaced(groq_settings: Setti
     with pytest.raises(LLMRequestError, match="does not support strict mode"):
         await provider(groq_settings, client).generate_structured("q", Claim)
     assert len(client.requests) == 1
+
+
+JSON_FAILED = {
+    "error": {
+        "message": "Failed to generate JSON. Please adjust your prompt.",
+        "code": "json_validate_failed",
+        "failed_generation": "partial model output that may contain document text",
+    }
+}
+
+
+async def test_json_generation_failure_is_retried(groq_settings: Settings, backoff_sleeps: list[float]) -> None:
+    client = FakeClient(status_error(openai.BadRequestError, 400, body=JSON_FAILED), completion())
+
+    claim = await provider(groq_settings, client).generate_structured("q", Claim)
+
+    assert claim == Claim(**VALID_CLAIM)
+    assert len(client.requests) == 2
+
+
+async def test_any_failed_generation_400_is_retried(groq_settings: Settings, backoff_sleeps: list[float]) -> None:
+    body = {"error": {"message": "Parsing failed. The model generated output that could not be parsed.",
+                      "code": "some_new_code", "failed_generation": "..."}}
+    client = FakeClient(status_error(openai.BadRequestError, 400, body=body), completion())
+
+    assert await provider(groq_settings, client).generate_structured("q", Claim) == Claim(**VALID_CLAIM)
+    assert len(client.requests) == 2
+
+
+async def test_json_generation_failure_exhausted_is_an_output_error(
+    groq_settings: Settings, backoff_sleeps: list[float], caplog: pytest.LogCaptureFixture
+) -> None:
+    client = FakeClient(*[status_error(openai.BadRequestError, 400, body=JSON_FAILED) for _ in range(4)])
+
+    with pytest.raises(LLMOutputError, match="valid JSON after 4 attempts"):
+        await provider(groq_settings, client).generate_structured("q", Claim)
+    assert "partial model output" not in caplog.text  # failed_generation is never logged
+
+
+async def test_reasoning_effort_sent_to_gpt_oss_models_only(groq_settings: Settings) -> None:
+    client = FakeClient(completion(), completion())
+    image = ImageInput(data=b"fake-png-bytes", media_type="image/png")
+
+    await provider(groq_settings, client).generate_structured("q", Claim)
+    await provider(groq_settings, client).generate_structured("q", Claim, images=[image])
+
+    assert client.requests[0]["reasoning_effort"] == "low"
+    assert client.requests[1]["model"] == "qwen/qwen3.8-27b" and "reasoning_effort" not in client.requests[1]
+
+
+async def test_reasoning_effort_can_be_turned_off(groq_settings: Settings) -> None:
+    groq_settings.groq_reasoning_effort = ""
+    client = FakeClient(completion())
+
+    await provider(groq_settings, client).generate_structured("q", Claim)
+
+    assert "reasoning_effort" not in client.requests[0]
 
 
 async def test_limiter_waits_using_headers_from_previous_response(groq_settings: Settings) -> None:

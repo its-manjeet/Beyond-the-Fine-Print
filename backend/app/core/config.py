@@ -40,17 +40,47 @@ class Settings(BaseSettings):
     groq_base_url: str = "https://api.groq.com/openai/v1"
     groq_text_model: str = "openai/gpt-oss-120b"
     groq_vision_model: str | None = None
-    # Per-agent text model override, e.g. {"classifier": "openai/gpt-oss-20b"}.
-    groq_agent_models: dict[str, str] = Field(default_factory=dict)
+    # Per-agent text model override. The small model is enough for classification and key
+    # facts, and it has its own free-tier token budget, so it runs alongside the large one.
+    groq_agent_models: dict[str, str] = Field(
+        default_factory=lambda: {"classifier": "openai/gpt-oss-20b", "key_facts": "openai/gpt-oss-20b"}
+    )
     # Completion tokens requested per call. Groq counts this toward the tokens-per-minute
     # limit, so it is capped well below the free-tier TPM.
     groq_max_output_tokens: int = Field(default=2048, gt=0)
+    # Reasoning effort for gpt-oss models (low | medium | high; empty = provider default).
+    # Reasoning tokens count toward the output cap above, so "low" leaves room for the answer.
+    groq_reasoning_effort: str | None = Field(default="low", pattern="^(low|medium|high)?$")
     # Requests per minute is not reported in response headers, so it is configured here.
     groq_requests_per_minute: int = Field(default=30, gt=0)
     # The client-side limiter raises instead of waiting longer than this.
     groq_max_limiter_wait_seconds: float = Field(default=90.0, gt=0)
     # "model": each model has its own limits; "shared": one budget across all models.
     groq_rate_limit_scope: str = Field(default="model", pattern="^(model|shared)$")
+
+    # Storage and retention. Documents and everything derived from them (including the
+    # agent output cache) are deleted after ``retention_hours``.
+    database_url: str = f"sqlite:///{(REPO_ROOT / 'data' / 'app.db').as_posix()}"
+    retention_hours: float = Field(default=24.0, gt=0)
+    cleanup_interval_minutes: float = Field(default=30.0, gt=0)
+
+    # Upload limits and ingestion
+    max_upload_mb: int = Field(default=25, gt=0)
+    max_pages: int = Field(default=20, gt=0)
+    # A page with fewer characters than this is flagged as low confidence.
+    low_text_chars: int = Field(default=40, ge=0)
+    # Images are downscaled to this many pixels on the long side before vision OCR.
+    ocr_max_image_side: int = Field(default=1600, gt=0)
+    # Tesseract is only a fallback, used if this command is found on PATH.
+    tesseract_cmd: str = "tesseract"
+
+    # Agents
+    classifier_min_confidence: float = Field(default=0.6, ge=0, le=1)
+    # Risk score weights (w1..w4) for clause type, patterns, legality and money at stake.
+    risk_weights: tuple[float, float, float, float] = (0.30, 0.50, 0.10, 0.10)
+    # Approximate text budget per LLM call, in bytes of document text. Keeps each request
+    # well under Groq's free-tier 8K tokens/minute; longer inputs are split into batches.
+    llm_input_budget_bytes: int = Field(default=9000, gt=0)
 
 
 @lru_cache

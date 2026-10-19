@@ -10,6 +10,8 @@ from app.core.llm.base import (
     LLMRefusalError,
     LLMRequestError,
     LLMUnavailableError,
+    LLMUsage,
+    capture_usage,
 )
 from app.core.llm.factory import available_providers, create_provider, get_llm_provider
 
@@ -23,7 +25,9 @@ __all__ = [
     "LLMRefusalError",
     "LLMRequestError",
     "LLMUnavailableError",
+    "LLMUsage",
     "available_providers",
+    "capture_usage",
     "create_provider",
     "get_llm_provider",
 ]

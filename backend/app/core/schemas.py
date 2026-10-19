@@ -1,25 +1,70 @@
 """Core domain schemas shared by every agent."""
 
 from datetime import UTC, datetime
-from typing import Self
+from typing import Literal, Self
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, model_validator
 
 
-class Clause(BaseModel):
-    """A clause/section of a document, with a stable ID and its source span."""
+DocType = Literal[
+    "rental_agreement",
+    "insurance_policy",
+    "loan_agreement",
+    "legal_notice",
+    "scheme_rules",
+    "bank_circular",
+    "other",
+]
 
-    id: str = Field(description="Stable clause ID, e.g. 'c-012'")
+RentalCategory = Literal[
+    "parties_property",
+    "rent_payment",
+    "security_deposit",
+    "rent_escalation",
+    "maintenance",
+    "lock_in",
+    "termination_notice",
+    "penalty_late_fee",
+    "renewal",
+    "use_restrictions",
+    "dispute_resolution",
+    "other",
+]
+
+
+class DocLine(BaseModel):
+    """One numbered line of the document, as extracted by ingestion."""
+
+    page: int = Field(ge=1)
+    line_number: int = Field(ge=1, description="1-indexed, restarting on every page")
     text: str
-    page: int = Field(ge=1, description="1-indexed page number")
-    line_start: int = Field(ge=1, description="1-indexed first line on the page")
-    line_end: int = Field(ge=1, description="1-indexed last line on the page (inclusive)")
+
+    @property
+    def ref(self) -> str:
+        return f"p{self.page} L{self.line_number}"
+
+
+class Clause(BaseModel):
+    """A clause/section of a document, with a stable code and its source span.
+
+    The span starts at (page, line_start) and ends at (page_end, line_end), inclusive.
+    ``text`` is always copied from the stored lines, never written by a model.
+    """
+
+    clause_code: str = Field(description="Stable clause code, e.g. 'C-01'")
+    title: str
+    category: str
+    page: int = Field(ge=1, description="1-indexed page the clause starts on")
+    line_start: int = Field(ge=1)
+    page_end: int = Field(ge=1, description="Page the clause ends on (usually the same page)")
+    line_end: int = Field(ge=1, description="Last line on page_end (inclusive)")
+    text: str
 
     @model_validator(mode="after")
     def _check_span(self) -> Self:
-        if self.line_end < self.line_start:
-            raise ValueError("line_end must be >= line_start")
+        if (self.page_end, self.line_end) < (self.page, self.line_start):
+            raise ValueError("the span must end at or after its start")
         return self
 
 

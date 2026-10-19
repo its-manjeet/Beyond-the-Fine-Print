@@ -5,7 +5,9 @@ Groq, ... later) live next to this file and are selected by ``LLM_PROVIDER``.
 """
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Literal, TypeVar
 
@@ -34,6 +36,31 @@ class LLMUsage:
     output_tokens: int = 0
     cache_read_input_tokens: int = 0
     cache_creation_input_tokens: int = 0
+    model: str | None = None
+
+
+_usage_sink: ContextVar[list[LLMUsage] | None] = ContextVar("llm_usage_sink", default=None)
+
+
+def report_usage(usage: LLMUsage) -> None:
+    """Called by providers after every successful API call; a no-op unless captured."""
+    sink = _usage_sink.get()
+    if sink is not None:
+        sink.append(usage)
+
+
+@contextmanager
+def capture_usage() -> Iterator[list[LLMUsage]]:
+    """Collect the usage of every API call made inside the block (including retries).
+
+    Context variables are per asyncio task, so concurrent agents each see only their own calls.
+    """
+    sink: list[LLMUsage] = []
+    token = _usage_sink.set(sink)
+    try:
+        yield sink
+    finally:
+        _usage_sink.reset(token)
 
 
 class LLMError(Exception):

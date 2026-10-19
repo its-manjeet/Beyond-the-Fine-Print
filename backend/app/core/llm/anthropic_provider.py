@@ -26,6 +26,7 @@ from app.core.llm.base import (
     LLMUnavailableError,
     LLMUsage,
     T,
+    report_usage,
 )
 from app.core.logging import get_logger
 
@@ -178,6 +179,7 @@ class AnthropicProvider(LLMProvider):
 
     def _log_call(self, response: Any, schema: type[T], attempt: int, latency_ms: float) -> None:
         usage = _usage(response)
+        report_usage(LLMUsage(**{**vars(usage), "model": getattr(response, "model", None) or self.model}))
         logger.info(
             "llm.call",
             extra={

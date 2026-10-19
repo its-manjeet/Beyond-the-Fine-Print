@@ -1,0 +1,19 @@
+{
+  "clauses": [
+    {"clause_code": "C-01", "title": "Parties", "category": "parties_property", "span": {"page": 1, "line_start": 1, "line_end": 10}},
+    {"clause_code": "C-02", "title": "Premises", "category": "parties_property", "span": {"page": 1, "line_start": 11, "line_end": 14}},
+    {"clause_code": "C-03", "title": "Period of Licence", "category": "other", "span": {"page": 1, "line_start": 15, "line_end": 17}},
+    {"clause_code": "C-04", "title": "Licence Fee", "category": "rent_payment", "span": {"page": 1, "line_start": 18, "line_end": 21}},
+    {"clause_code": "C-05", "title": "Late Payment", "category": "penalty_late_fee", "span": {"page": 1, "line_start": 22, "line_end": 24}},
+    {"clause_code": "C-06", "title": "Security Deposit", "category": "security_deposit", "span": {"page": 1, "line_start": 25, "line_end": 29}},
+    {"clause_code": "C-07", "title": "Lock-in Period", "category": "lock_in", "span": {"page": 1, "line_start": 30, "line_end": 34}},
+    {"clause_code": "C-08", "title": "Termination", "category": "termination_notice", "span": {"page": 2, "line_start": 1, "line_end": 4}},
+    {"clause_code": "C-09", "title": "Increase in Licence Fee", "category": "rent_escalation", "span": {"page": 2, "line_start": 5, "line_end": 7}},
+    {"clause_code": "C-10", "title": "Maintenance and Charges", "category": "maintenance", "span": {"page": 2, "line_start": 8, "line_end": 12}},
+    {"clause_code": "C-11", "title": "Use of Premises", "category": "use_restrictions", "span": {"page": 2, "line_start": 13, "line_end": 16}},
+    {"clause_code": "C-12", "title": "Inspection", "category": "other", "span": {"page": 2, "line_start": 17, "line_end": 19}},
+    {"clause_code": "C-13", "title": "Renewal", "category": "renewal", "span": {"page": 2, "line_start": 20, "line_end": 22}},
+    {"clause_code": "C-14", "title": "Handing Over Possession", "category": "penalty_late_fee", "span": {"page": 2, "line_start": 23, "line_end": 26}},
+    {"clause_code": "C-15", "title": "Dispute Resolution", "category": "dispute_resolution", "span": {"page": 2, "line_start": 27, "line_end": 30}}
+  ]
+}

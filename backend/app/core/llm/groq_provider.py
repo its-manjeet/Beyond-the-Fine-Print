@@ -38,7 +38,9 @@ from app.core.llm.base import (
     LLMRefusalError,
     LLMRequestError,
     LLMUnavailableError,
+    LLMUsage,
     T,
+    report_usage,
 )
 from app.core.llm.rate_limiter import RateLimiter
 from app.core.logging import get_logger
@@ -48,8 +50,14 @@ logger = get_logger(__name__)
 MAX_IMAGES = 3
 IMAGE_TOKENS = 2048  # Groq bills each image as 2048 input tokens
 SHARED_BUCKET = "groq:shared"
+# Only these models accept reasoning_effort low/medium/high.
+REASONING_EFFORT_MODEL_PREFIX = "openai/gpt-oss"
 
 _RETRYABLE_STATUS = frozenset({408, 409, 429, 500, 502, 503, 504})
+# A 400 that carries "failed_generation" means the model's output could not be turned into
+# valid JSON this time (codes seen include json_validate_failed and output parse failures).
+# The same request usually succeeds when sent again.
+_RETRYABLE_ERROR_CODES = frozenset({"json_validate_failed"})
 
 
 @lru_cache
@@ -113,7 +121,8 @@ class GroqProvider(LLMProvider):
         messages.append({"role": "user", "content": user_content})
 
         output_tokens = min(max_tokens, self._settings.groq_max_output_tokens)
-        request = _build_request(model, messages, schema, output_tokens)
+        effort = self._reasoning_effort(model)
+        request = _build_request(model, messages, schema, output_tokens, effort)
         estimate = _estimate_tokens(messages, len(all_images), output_tokens)
 
         message, finish_reason = await self._create_with_retries(request, schema, estimate)
@@ -132,7 +141,7 @@ class GroqProvider(LLMProvider):
                     f"{first_error}\nReturn corrected output that satisfies the schema.",
                 },
             ]
-            request = _build_request(model, messages, schema, output_tokens)
+            request = _build_request(model, messages, schema, output_tokens, effort)
             estimate = _estimate_tokens(messages, len(all_images), output_tokens)
             logger.warning("llm.output_invalid_retrying", extra={"schema": schema.__name__, "model": model})
             message, finish_reason = await self._create_with_retries(request, schema, estimate)
@@ -149,6 +158,11 @@ class GroqProvider(LLMProvider):
         if len(images) > MAX_IMAGES:
             raise LLMRequestError(f"Groq accepts at most {MAX_IMAGES} images per request; got {len(images)}")
         return self.vision_model
+
+    def _reasoning_effort(self, model: str) -> str | None:
+        """Reasoning tokens count toward the output cap, so gpt-oss models are asked to keep it low."""
+        effort = self._settings.groq_reasoning_effort
+        return effort if effort and model.startswith(REASONING_EFFORT_MODEL_PREFIX) else None
 
     def _bucket(self, model: str) -> str:
         return SHARED_BUCKET if self._settings.groq_rate_limit_scope == "shared" else model
@@ -167,10 +181,16 @@ class GroqProvider(LLMProvider):
                 response = getattr(exc, "response", None)
                 if response is not None:
                     self._limiter.update_from_headers(bucket, response.headers)
-                if status is not None and status not in _RETRYABLE_STATUS:
+                if status is not None and status not in _RETRYABLE_STATUS and not _retryable_code(exc):
                     logger.error(
                         "llm.request_rejected",
-                        extra={"provider": self.name, "model": model, "status": status, "error": _error_message(exc)},
+                        extra={
+                            "provider": self.name,
+                            "model": model,
+                            "status": status,
+                            "code": _error_body(exc).get("code"),
+                            "error": _error_message(exc),
+                        },
                     )
                     raise LLMRequestError(f"LLM request rejected ({status}): {_error_message(exc)}") from exc
                 if attempt == max_attempts:
@@ -180,6 +200,8 @@ class GroqProvider(LLMProvider):
                     )
                     if status == 429:
                         raise LLMRateLimitError(f"Rate limited after {attempt} attempts") from exc
+                    if _retryable_code(exc):
+                        raise LLMOutputError(f"The model failed to produce valid JSON after {attempt} attempts") from exc
                     raise LLMUnavailableError(f"LLM unavailable after {attempt} attempts: {exc}") from exc
 
                 retry_after = _retry_after(response)
@@ -197,6 +219,7 @@ class GroqProvider(LLMProvider):
                         "attempt": attempt,
                         "error": type(exc).__name__,
                         "status": status,
+                        "code": _error_body(exc).get("code"),
                         "retry_after_s": retry_after,
                         "delay_s": round(delay, 2),
                     },
@@ -223,6 +246,13 @@ class GroqProvider(LLMProvider):
 
     def _log_call(self, completion: Any, model: str, schema: type[T], attempt: int, latency_ms: float, bucket: str) -> None:
         usage = getattr(completion, "usage", None)
+        report_usage(
+            LLMUsage(
+                input_tokens=getattr(usage, "prompt_tokens", 0) or 0,
+                output_tokens=getattr(usage, "completion_tokens", 0) or 0,
+                model=getattr(completion, "model", None) or model,
+            )
+        )
         limits = self._limiter.snapshot(bucket)
         logger.info(
             "llm.call",
@@ -243,8 +273,10 @@ class GroqProvider(LLMProvider):
         )
 
 
-def _build_request(model: str, messages: list[dict[str, Any]], schema: type[T], max_tokens: int) -> dict[str, Any]:
-    return {
+def _build_request(
+    model: str, messages: list[dict[str, Any]], schema: type[T], max_tokens: int, reasoning_effort: str | None = None
+) -> dict[str, Any]:
+    request: dict[str, Any] = {
         "model": model,
         "messages": messages,
         "max_completion_tokens": max_tokens,
@@ -253,6 +285,9 @@ def _build_request(model: str, messages: list[dict[str, Any]], schema: type[T], 
             "json_schema": {"name": schema.__name__, "strict": True, "schema": to_strict_schema(schema)},
         },
     }
+    if reasoning_effort:
+        request["reasoning_effort"] = reasoning_effort
+    return request
 
 
 def _parse(message: Any, finish_reason: str | None, schema: type[T]) -> T:
@@ -387,6 +422,17 @@ def _retry_after(response: Any) -> float | None:
         return float(value) if value is not None else None
     except ValueError:
         return None
+
+
+def _error_body(exc: Exception) -> dict[str, Any]:
+    body = getattr(exc, "body", None)
+    error = body.get("error", body) if isinstance(body, dict) else None
+    return error if isinstance(error, dict) else {}
+
+
+def _retryable_code(exc: Exception) -> bool:
+    error = _error_body(exc)
+    return error.get("code") in _RETRYABLE_ERROR_CODES or "failed_generation" in error
 
 
 def _error_message(exc: Exception) -> str:

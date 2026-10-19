@@ -1,0 +1,20 @@
+{
+  "monthly_rent_rupees": 18000,
+  "clauses": [
+    {"clause_code": "C-01", "category": "parties_property", "patterns": [], "amount_at_stake_rupees": null},
+    {"clause_code": "C-02", "category": "parties_property", "patterns": [], "amount_at_stake_rupees": null},
+    {"clause_code": "C-03", "category": "other", "patterns": [], "amount_at_stake_rupees": null},
+    {"clause_code": "C-04", "category": "rent_payment", "patterns": [], "amount_at_stake_rupees": null},
+    {"clause_code": "C-05", "category": "penalty_late_fee", "patterns": [], "amount_at_stake_rupees": 7500},
+    {"clause_code": "C-06", "category": "security_deposit", "patterns": [], "amount_at_stake_rupees": 100000},
+    {"clause_code": "C-07", "category": "lock_in", "patterns": ["lock_in_with_penalty"], "amount_at_stake_rupees": 36000},
+    {"clause_code": "C-08", "category": "termination_notice", "patterns": ["one_sided_termination"], "amount_at_stake_rupees": null},
+    {"clause_code": "C-09", "category": "rent_escalation", "patterns": ["unilateral_rent_increase"], "amount_at_stake_rupees": 1800},
+    {"clause_code": "C-10", "category": "maintenance", "patterns": [], "amount_at_stake_rupees": 2000},
+    {"clause_code": "C-11", "category": "use_restrictions", "patterns": [], "amount_at_stake_rupees": null},
+    {"clause_code": "C-12", "category": "other", "patterns": [], "amount_at_stake_rupees": null},
+    {"clause_code": "C-13", "category": "renewal", "patterns": [], "amount_at_stake_rupees": null},
+    {"clause_code": "C-14", "category": "penalty_late_fee", "patterns": [], "amount_at_stake_rupees": 1500},
+    {"clause_code": "C-15", "category": "dispute_resolution", "patterns": [], "amount_at_stake_rupees": null}
+  ]
+}

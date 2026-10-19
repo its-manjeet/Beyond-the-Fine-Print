@@ -1,0 +1,15 @@
+{
+  "leave_early": {
+    "covered": true,
+    "sentences": [
+      {"text": "You agreed to an 11-month lock-in, so leaving early means paying two months' rent, Rs. 36,000.", "clause_codes": ["C-07"]},
+      {"text": "The owner can take that amount from your Rs. 1,00,000 deposit.", "clause_codes": ["C-07", "C-06"]},
+      {"text": "After the lock-in, you must give one month's written notice to leave.", "clause_codes": ["C-08"]},
+      {"text": "Most courts would let you leave anyway.", "clause_codes": ["C-31"]}
+    ]
+  },
+  "parking": {
+    "covered": false,
+    "sentences": []
+  }
+}
